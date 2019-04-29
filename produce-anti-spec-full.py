@@ -65,7 +65,7 @@ def loadKnownSources(fn):
         n=n+1
 
     #print >> sys.stdout, "%d known sources are loaded" % (n)
-    print("%d known sources are loaded" % (n))
+    #salman print("%d known sources are loaded" % (n))
     #print sourcelist
     return sourcelist
 
@@ -116,7 +116,7 @@ def boundary_checking(caller, callsitedefs, cfg, cdg):
     if such a cfgnode guards other nodes on CDG, then the cfgnode itself is checking
     a def against some condition; we collect such cfgnodes
     '''
-    print ("%d cfgnodes associated with defs at callsite" % (len(cdnodes)))
+    #salman print ("%d cfgnodes associated with defs at callsite" % (len(cdnodes)))
     for node in cdnodes:
         if len(cdg.get_dependants(node))>=1:
             allguards.append (node)
@@ -186,7 +186,7 @@ def antispec_per_source(ap,caller, callee, csaddr,cfg,cdg,ddg):
 
     ddgnodes = locateDDGDataNode(ddg, cfgnode)
 
-    l.debug("DDG nodes associated with the callsite")
+    #salman l.debug("DDG nodes associated with the callsite")
     alldefs = set()
     allcons = set()
     total_ddnodes = 0
@@ -207,7 +207,7 @@ def antispec_per_source(ap,caller, callee, csaddr,cfg,cdg,ddg):
         # only stack, and memory variables are interesting to us
         if not (isinstance (node.variable, angr.sim_variable.SimStackVariable) or isinstance (node.variable, angr.sim_variable.SimMemoryVariable)):
             continue
-        print (node)
+        #salman print (node)
         total_ddnodes += 1
         defs = ddg.find_definitions(node.variable, simplified_graph=False)
         #print defs
@@ -235,8 +235,10 @@ def antispec_per_source(ap,caller, callee, csaddr,cfg,cdg,ddg):
     for edge in ddg.data_graph.edges():
         print edge
     '''
+    
+    print('Number of DDG nodes associated with the callsite: %d' % total_ddnodes)
 
-    l.debug("definitions at the call site")
+    #salman l.debug("definitions at the call site")
     '''
     dview = ddg.view #angr.analyses.ddg.DDGView(cfg, ddg)
     print dview
@@ -258,22 +260,25 @@ def antispec_per_source(ap,caller, callee, csaddr,cfg,cdg,ddg):
     print dvinses
     '''
     total_definitions = len(alldefs)
+    print('Number of definitions at the call site: %d' % total_definitions)
     #salman for df in alldefs:
         #salman print (df)
 
-    l.debug("boundary checking of defs at call site")
+    #l.debug("boundary checking of defs at call site")
     allguards = boundary_checking(caller, alldefs, cfg, cdg)
     total_boundary_checks = len(allguards)
+    print('boundary checking of defs at call site: %d' % total_boundary_checks)
     #salman for guard in allguards:
         #salman print (guard)
 
-    l.debug("Downstream data-flow impact of defs on callsite")
+    #l.debug("Downstream data-flow impact of defs on callsite")
     # impact via control dependencies
     total_data_consumers = len(allcons)
+    print('Downstream data-flow impact of defs on callsite: %d' % total_data_consumers)
     #salman for con in allcons:
         #salman print (con)
 
-    l.debug("Downstream control-flow impact of defs on callsite")
+    #l.debug("Downstream control-flow impact of defs on callsite")
     # impact via control dependencies
     for cc in cdg.get_dependants(cfgnode):
         #print (cc)
@@ -283,6 +288,7 @@ def antispec_per_source(ap,caller, callee, csaddr,cfg,cdg,ddg):
             #print (cc)
             total_control_consumers += 1
 
+    print('Downstream control-flow impact of defs on callsite: %d' %total_control_consumers)
     return
 
     sltargets = []
@@ -385,15 +391,15 @@ def do_analysis(fbin, sources):
         if faddr == None:
             continue
 
-        l.info ("user input source:")
-        print ("%s %s %s..." % (sources[fname][0], fname, sources[fname][1]))
-        l.debug("callers of this user input source:")
+        #salman l.info ("user input source:")
+        print ("%s %s %s" % (sources[fname][0], fname, sources[fname][1]))
+        #salman l.debug("callers of this user input source:")
         allcallercs = getCallers(cfg,faddr)
         for callercs in allcallercs:
             caller = callercs[0]
             csaddr = callercs[1]
             print ("caller: %s" % caller.name)
-            print (caller)
+            #salman print (caller)
             print ("callsite in caller: %s" % (hex(csaddr)))
             #salman print ("strings in this caller: %s" % (caller.string_references()))
             #salman l.debug("=== data dependencies within this caller ===")
@@ -423,7 +429,9 @@ if __name__=="__main__":
     sources = loadKnownSources('/home/salman/angr-dev/antispec/known-sources.txt')
 
     #print >> sys.stdout, "now analyzing %s with angr facilities..." % (sys.argv[1])
-    print("now analyzing %s with angr facilities..." % (sys.argv[1]))
+    #salman print("now analyzing %s with angr facilities..." % (sys.argv[1]))
+    print(sys.argv[1])
+    print('=====================================')
     do_analysis(sys.argv[1], sources)
 
     sys.exit(0)
