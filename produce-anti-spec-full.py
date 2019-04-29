@@ -132,30 +132,32 @@ def boundary_checking(caller, callsitedefs, cfg, cdg):
 
 def antispec_per_source(ap,caller, callee, csaddr,cfg,cdg,ddg):
     cfgnode = locateCFGNode (cfg, csaddr)
-    l.debug("cfgnode associated with callsite")
-    print ("node: %s" % (cfgnode))
-    print ("node addr: %x" % (cfgnode.addr))
-    print ("node block addr: %x" % (ap.factory.block(cfgnode.addr).addr))
+    #salman l.debug("cfgnode associated with callsite")
+    #salma print ("node: %s" % (cfgnode))
+    #salman print ("node addr: %x" % (cfgnode.addr))
+    #salman print ("node block addr: %x" % (ap.factory.block(cfgnode.addr).addr))
     #print "callsite instructions: %s" % (cfgnode.irsb)
     #print "callsite instructions: %s" % (ap.factory.block(cfgnode.addr).capstone.insns)
-    l.debug("callsite instructions")
-    for stmt in (ap.factory.block(cfgnode.addr).capstone.insns):
-        print (stmt)
+    #salma l.debug("callsite instructions")
+    #salman for stmt in (ap.factory.block(cfgnode.addr).capstone.insns):
+        #salman print (stmt)
 
 
+    '''salman
     l.info("guardian of the callsite (intraprocedural)")
-    guardians = cdg.get_guardians(cfgnode)
+    guardians = cdg.get_guardians(cfgnode) #return a list of nodes on whom the specific 
+    #node is control dependent in the control dependence graph
     for guard in guardians:
         #print guard
         for block in caller.blocks:
             if block.addr == guard.addr:
-                print (guard)
+                print (guard)'''
 
-    l.debug("data dependencies starting from callsite")
+    #salman l.debug("data dependencies starting from callsite")
     #sddg = ap.analyses.DDG (cfg, start=csaddr, block_addrs=[csaddr])
     sddg = ap.analyses.DDG (cfg, start=csaddr)
     #sddg.pp()
-    print ("%d nodes, %d edges" % (len(sddg.graph.nodes()), len(sddg.graph.edges())))
+    #salman print ("%d nodes, %d edges" % (len(sddg.graph.nodes()), len(sddg.graph.edges())))
 
     '''
     ddgnode = locateNode (ddg.graph, srcaddr)
@@ -187,6 +189,11 @@ def antispec_per_source(ap,caller, callee, csaddr,cfg,cdg,ddg):
     l.debug("DDG nodes associated with the callsite")
     alldefs = set()
     allcons = set()
+    total_ddnodes = 0
+    total_definitions = 0
+    total_data_consumers = 0
+    total_control_consumers = 0
+    total_boundary_checks = 0
     for node in ddgnodes:
         '''
         print node.location.block_addr, node.location.stmt_idx, node.location.ins_addr
@@ -201,6 +208,7 @@ def antispec_per_source(ap,caller, callee, csaddr,cfg,cdg,ddg):
         if not (isinstance (node.variable, angr.sim_variable.SimStackVariable) or isinstance (node.variable, angr.sim_variable.SimMemoryVariable)):
             continue
         print (node)
+        total_ddnodes += 1
         defs = ddg.find_definitions(node.variable, simplified_graph=False)
         #print defs
         for df in defs:
@@ -210,7 +218,8 @@ def antispec_per_source(ap,caller, callee, csaddr,cfg,cdg,ddg):
             srcs = ddg.find_sources(df, simplified_graph=False)
             #print srcs
             #print "consumers of %s" % (df)
-            cons = ddg.find_consumers(df, simplified_graph=False)
+            #cons = ddg.find_consumers(df, simplified_graph=False)
+            cons = ddg.find_consumers(sddg, simplified_graph=False)
             #print cons
             for con in cons:
                 allcons.add (con)
@@ -248,26 +257,31 @@ def antispec_per_source(ap,caller, callee, csaddr,cfg,cdg,ddg):
         #i=i+1
     print dvinses
     '''
-    for df in alldefs:
-        print (df)
+    total_definitions = len(alldefs)
+    #salman for df in alldefs:
+        #salman print (df)
 
     l.debug("boundary checking of defs at call site")
     allguards = boundary_checking(caller, alldefs, cfg, cdg)
-    for guard in allguards:
-        print (guard)
+    total_boundary_checks = len(allguards)
+    #salman for guard in allguards:
+        #salman print (guard)
 
     l.debug("Downstream data-flow impact of defs on callsite")
     # impact via control dependencies
-    for con in allcons:
-        print (con)
+    total_data_consumers = len(allcons)
+    #salman for con in allcons:
+        #salman print (con)
 
     l.debug("Downstream control-flow impact of defs on callsite")
     # impact via control dependencies
     for cc in cdg.get_dependants(cfgnode):
-        print (cc)
+        #print (cc)
+        total_control_consumers += 1
     for guard in allguards:
         for cc in cdg.get_dependants(guard):
-            print (cc)
+            #print (cc)
+            total_control_consumers += 1
 
     return
 
@@ -321,16 +335,16 @@ def getCallers(cfg,faddr):
     return ret
 
 def do_analysis(fbin, sources):
-    ap = angr.Project(fbin, load_options={'auto_load_libs': True} )
+    ap = angr.Project(fbin, load_options={'auto_load_libs': False} )
     cfg = ap.analyses.CFGEmulated(keep_state=True, context_sensitivity_level=2,state_add_options=angr.sim_options.refs)
     cfg.normalize()
     #peekcfg(cfg)
     cdg = ap.analyses.CDG (cfg)
     #logging.getLogger("angr.analyses.ddg").setLevel(logging.DEBUG)
     ddg = ap.analyses.DDG (cfg)
-    l.debug("=== data dependencies (from program entry) ===")
+    #salman l.debug("=== data dependencies (from program entry) ===")
     #ddg.pp()
-    print ("%d nodes, %d edges" % (len(ddg.graph.nodes()), len(ddg.graph.edges())))
+    #salman print ("%d nodes, %d edges" % (len(ddg.graph.nodes()), len(ddg.graph.edges())))
 
     '''
     vfg = ap.analyses.VFG(cfg)
@@ -381,12 +395,12 @@ def do_analysis(fbin, sources):
             print ("caller: %s" % caller.name)
             print (caller)
             print ("callsite in caller: %s" % (hex(csaddr)))
-            print ("strings in this caller: %s" % (caller.string_references()))
-            l.debug("=== data dependencies within this caller ===")
+            #salman print ("strings in this caller: %s" % (caller.string_references()))
+            #salman l.debug("=== data dependencies within this caller ===")
             #clddg = ddg.function_dependency_graph(caller)
             clddg = func2ddg[caller]
-            for src,dst,data in clddg:
-                print (src, dst, data)
+            #salman for src,dst,data in clddg:
+                #salman print (src, dst, data)
 
             '''
             print clddg.graph
