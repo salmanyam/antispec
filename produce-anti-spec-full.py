@@ -75,7 +75,7 @@ def getFuncAddress(cfg, funcName, plt=None ):
             if funcName == func.name and (plt is None or func.is_plt == plt)
             ]
     if len( found ) > 0:
-        print("Found "+funcName+"'s address at "+hex(found[0])+"!")
+        #salman print("Found "+funcName+"'s address at "+hex(found[0])+"!")
         return found[0]
     else:
         #raise Exception("No address found for function : "+funcName)
@@ -236,7 +236,8 @@ def antispec_per_source(ap,caller, callee, csaddr,cfg,cdg,ddg):
         print edge
     '''
     
-    print('Number of DDG nodes associated with the callsite: %d' % total_ddnodes)
+    #print('Number of DDG nodes associated with the callsite: %d' % total_ddnodes)
+    print(total_ddnodes, end="endmark#$%@endmark")
 
     #salman l.debug("definitions at the call site")
     '''
@@ -260,21 +261,24 @@ def antispec_per_source(ap,caller, callee, csaddr,cfg,cdg,ddg):
     print dvinses
     '''
     total_definitions = len(alldefs)
-    print('Number of definitions at the call site: %d' % total_definitions)
+    #print('Number of definitions at the call site: %d' % total_definitions)
+    print(total_definitions, end="endmark#$%@endmark")
     #salman for df in alldefs:
         #salman print (df)
 
     #l.debug("boundary checking of defs at call site")
     allguards = boundary_checking(caller, alldefs, cfg, cdg)
     total_boundary_checks = len(allguards)
-    print('boundary checking of defs at call site: %d' % total_boundary_checks)
+    #print('boundary checking of defs at call site: %d' % total_boundary_checks)
+    print(total_boundary_checks, end="endmark#$%@endmark")
     #salman for guard in allguards:
         #salman print (guard)
 
     #l.debug("Downstream data-flow impact of defs on callsite")
     # impact via control dependencies
     total_data_consumers = len(allcons)
-    print('Downstream data-flow impact of defs on callsite: %d' % total_data_consumers)
+    #print('Downstream data-flow impact of defs on callsite: %d' % total_data_consumers)
+    print(total_data_consumers, end="endmark#$%@endmark")
     #salman for con in allcons:
         #salman print (con)
 
@@ -288,7 +292,8 @@ def antispec_per_source(ap,caller, callee, csaddr,cfg,cdg,ddg):
             #print (cc)
             total_control_consumers += 1
 
-    print('Downstream control-flow impact of defs on callsite: %d' %total_control_consumers)
+    #print('Downstream control-flow impact of defs on callsite: %d' %total_control_consumers)
+    print(total_control_consumers, end="endmark#$%@endmark")
     return
 
     sltargets = []
@@ -341,7 +346,7 @@ def getCallers(cfg,faddr):
     return ret
 
 def do_analysis(fbin, sources):
-    ap = angr.Project(fbin, load_options={'auto_load_libs': False} )
+    ap = angr.Project(fbin, load_options={'auto_load_libs': True} )
     cfg = ap.analyses.CFGEmulated(keep_state=True, context_sensitivity_level=2,state_add_options=angr.sim_options.refs)
     cfg.normalize()
     #peekcfg(cfg)
@@ -392,15 +397,17 @@ def do_analysis(fbin, sources):
             continue
 
         #salman l.info ("user input source:")
-        print ("%s %s %s" % (sources[fname][0], fname, sources[fname][1]))
+        print(fname, end="endmark#$%@endmark")
+        print ("%s %s %s" % (sources[fname][0], fname, sources[fname][1]), end="endmark#$%@endmark")
         #salman l.debug("callers of this user input source:")
         allcallercs = getCallers(cfg,faddr)
         for callercs in allcallercs:
             caller = callercs[0]
             csaddr = callercs[1]
-            print ("caller: %s" % caller.name)
+            print (caller.name, end="endmark#$%@endmark")
             #salman print (caller)
-            print ("callsite in caller: %s" % (hex(csaddr)))
+            #salman print ("callsite in caller: %s" % (hex(csaddr)))
+            print (hex(csaddr), end="endmark#$%@endmark")
             #salman print ("strings in this caller: %s" % (caller.string_references()))
             #salman l.debug("=== data dependencies within this caller ===")
             #clddg = ddg.function_dependency_graph(caller)
@@ -430,8 +437,7 @@ if __name__=="__main__":
 
     #print >> sys.stdout, "now analyzing %s with angr facilities..." % (sys.argv[1])
     #salman print("now analyzing %s with angr facilities..." % (sys.argv[1]))
-    print(sys.argv[1])
-    print('=====================================')
+    print(sys.argv[1], end="endmark#$%@endmark")
     do_analysis(sys.argv[1], sources)
 
     sys.exit(0)
